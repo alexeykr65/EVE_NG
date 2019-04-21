@@ -1,0 +1,88 @@
+---
+- name: Configure Interfaces on Cisco IOS & IOS-XR
+  hosts: all
+  gather_facts: false
+  vars_files:
+    - "src_cfg/{{ fcfg }}.yml"
+  tasks:
+    # - name: "Delete old config files"
+    #   file:
+    #     path: "gen_configs/{{ inventory_hostname }}_int.txt"
+    #     state: absent
+    #   tags: 
+    #     - gen_int
+
+    - name: "Generating config files for interfaces"
+      template:
+        src: templates/gen_cfgs.j2
+        dest: "gen_configs/{{ inventory_hostname }}_int.txt"
+      tags: 
+        - gen_int
+
+    - name: "Generating config files for VRFs"
+      template:
+        src: templates/gen_vrfs.j2
+        dest: "gen_configs/{{ inventory_hostname }}_vrfs.txt"
+      tags: 
+        - gen_int
+
+    - name: "Generating config files for OSPFs"
+      template:
+        src: templates/gen_ospf1.j2
+        dest: "gen_configs/{{ inventory_hostname }}_ospf.txt"
+      tags: 
+        - gen_int
+
+    - name: "Run configuration interfaces"
+      include_tasks: "devices/{{ ansible_network_os }}/main.yml"
+      args:
+        apply:
+          tags:
+            - conf_int
+      tags:
+        - conf_int
+
+    - name: "Run configuration VRFs"
+      include_tasks: "devices/{{ ansible_network_os }}/vrfs.yml"
+      args:
+        apply:
+          tags:
+            - conf_vrfs
+      tags:
+        - conf_vrfs
+
+    - name: "Run configuration OSPF"
+      include_tasks: "devices/{{ ansible_network_os }}/OSPF.yml"
+      args:
+        apply:
+          tags:
+            - conf_ospf
+      tags:
+        - conf_ospf
+
+    - name: Ping addresses for checking
+      ios_ping:
+        dest: "{{ item }}"
+      loop: "{{ ping_check_base[inventory_hostname] }}"
+      tags: 
+        - ping_base
+        - conf_int
+
+    - name: Ping Loopback addresses for checking
+      ios_ping:
+        dest: "{{ item }}"
+      loop: "{{ ping_check_loop[inventory_hostname] }}"
+      tags: 
+        - ping_loop
+
+    - name: gather ios_facts
+      ios_facts:
+      register: version
+      tags:
+      - gen_facts_ios
+
+    - name: View IOS Facts
+      debug:
+        msg: "CSR Version - {{version.ansible_facts.ansible_net_version}}"
+      tags:
+      - gen_facts_ios

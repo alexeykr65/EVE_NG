@@ -1,0 +1,6 @@
+---
+- name: Configure interfaces on XRV
+  iosxr_config:
+    src: templates/gen_cfgs.j2
+    backup: yes
+  register: result

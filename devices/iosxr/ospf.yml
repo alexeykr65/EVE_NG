@@ -1,0 +1,7 @@
+---
+- name: Configure OSPF on XRv
+  iosxr_config:
+    src: templates/gen_ospf1.j2
+    backup: no
+    before: no router ospf 1
+  register: result

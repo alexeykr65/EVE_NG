@@ -1,0 +1,6 @@
+---
+- name: Configure VRFs on IOS
+  ios_config:
+    src: templates/gen_vrfs.j2
+    backup: no
+  register: result

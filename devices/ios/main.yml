@@ -1,0 +1,6 @@
+---
+- name: Configure interface on IOS
+  ios_config:
+    src: templates/gen_cfgs.j2
+    backup: yes
+  register: result
