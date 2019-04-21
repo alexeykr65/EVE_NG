@@ -1,4 +1,5 @@
-retry
+.DS_Store
+gen_configs
 backup
 *.retry
 
