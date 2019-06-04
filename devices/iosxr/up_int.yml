@@ -1,0 +1,7 @@
+---
+- name: "UP interfaces"
+  iosxr_interface:
+    name: "{{ item['int'] }}"
+    enabled: True
+  loop: "{{ interfaces[inventory_hostname] }}"
+

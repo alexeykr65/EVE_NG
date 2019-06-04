@@ -1,0 +1,10 @@
+---
+- name: "UP interfaces"
+  ios_interface:
+    name: "{{ item['int'] }}"
+    enabled: True
+  loop: "{{ interfaces[inventory_hostname] }}"
+  register: result_up
+  tags:
+    - conf_int
+

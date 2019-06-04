@@ -5,16 +5,9 @@
   vars_files:
     - "src_cfg/{{ fcfg }}.yml"
   tasks:
-    # - name: "Delete old config files"
-    #   file:
-    #     path: "gen_configs/{{ inventory_hostname }}_int.txt"
-    #     state: absent
-    #   tags: 
-    #     - gen_int
-
     - name: "Generating config files for interfaces"
       template:
-        src: templates/gen_cfgs.j2
+        src: templates/gen_xr_int.j2
         dest: "gen_configs/{{ inventory_hostname }}_int.txt"
       tags: 
         - gen_int
@@ -24,17 +17,18 @@
         src: templates/gen_vrfs.j2
         dest: "gen_configs/{{ inventory_hostname }}_vrfs.txt"
       tags: 
-        - gen_int
+        - gen_vrfs
 
     - name: "Generating config files for OSPFs"
       template:
         src: templates/gen_ospf1.j2
         dest: "gen_configs/{{ inventory_hostname }}_ospf.txt"
       tags: 
-        - gen_int
-
+        - gen_ospf
+        
+#### Configure interfaces 
     - name: "Run configuration interfaces"
-      include_tasks: "devices/{{ ansible_network_os }}/main.yml"
+      include_tasks: "devices/{{ ansible_network_os }}/interfaces.yml"
       args:
         apply:
           tags:
@@ -42,6 +36,17 @@
       tags:
         - conf_int
 
+#### UP Interfaces
+    - name: "UP interfaces"
+      include_tasks: "devices/{{ ansible_network_os }}/up_int.yml"
+      args:
+        apply:
+          tags:
+            - up_int
+      tags:
+        - up_int
+
+####  Configure VRFs
     - name: "Run configuration VRFs"
       include_tasks: "devices/{{ ansible_network_os }}/vrfs.yml"
       args:
@@ -51,6 +56,7 @@
       tags:
         - conf_vrfs
 
+#### Configure OSPF 
     - name: "Run configuration OSPF"
       include_tasks: "devices/{{ ansible_network_os }}/OSPF.yml"
       args:
@@ -60,14 +66,15 @@
       tags:
         - conf_ospf
 
+#### Ping main interfaces
     - name: Ping addresses for checking
       ios_ping:
         dest: "{{ item }}"
       loop: "{{ ping_check_base[inventory_hostname] }}"
       tags: 
-        - ping_base
-        - conf_int
+        - ping_int
 
+#### Ping loopback interfaces
     - name: Ping Loopback addresses for checking
       ios_ping:
         dest: "{{ item }}"
@@ -75,7 +82,8 @@
       tags: 
         - ping_loop
 
-    - name: gather ios_facts
+#### Gather IOS facts
+    - name: Gather ios_facts
       ios_facts:
       register: version
       tags:

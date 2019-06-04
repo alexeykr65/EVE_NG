@@ -1,0 +1,23 @@
+{# Configure interfaces for IOS #}
+{% for str_interfaces in interfaces[inventory_hostname] %}
+{#========================= VLAN or No =============================#}
+{% if 'vlan' in str_interfaces %}
+interface {{ str_interfaces['int'] }}.{{ str_interfaces['vlan'] }}
+ encapsulation dot1Q {{ str_interfaces['vlan'] }}
+{% else %}
+interface {{ str_interfaces['int'] }}
+{% endif %}
+{#========================= IPV4 =============================#}
+{% if 'ipv4' in str_interfaces %}
+ ip address {{ str_interfaces['ipv4'] | ipaddr('address') }} {{ str_interfaces['ipv4'] | ipaddr('netmask') }}
+{% endif %}
+{#======================= IPV6 Link-Local ====================#}
+{%if 'link-local' in str_interfaces%}
+ ipv6 address {{ str_interfaces['link-local'] | upper }} link-local
+{% endif %}
+{#========================== IPV6 ============================#}
+{%if 'ipv6' in str_interfaces%}
+ ipv6 address {{ str_interfaces['ipv6'] | upper }}
+{% endif %}
+{#======================================================#}
+{% endfor %}
